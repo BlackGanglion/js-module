@@ -6,9 +6,9 @@
 // anything defined in a previous bundle is accessed via the
 // orig method which is the require for previous bundles
 
-require = (function (modules, cache, entry) {
+require = (function(modules, cache, entry) {
   // Save the require from previous bundle to this closure if any
-  var previousRequire = typeof require === "function" && require;
+  var previousRequire = typeof require === 'function' && require;
 
   function newRequire(name, jumped) {
     if (!cache[name]) {
@@ -16,7 +16,7 @@ require = (function (modules, cache, entry) {
         // if we cannot find the module within our internal map or
         // cache jump to the current global require ie. the last bundle
         // that was added to the page.
-        var currentRequire = typeof require === "function" && require;
+        var currentRequire = typeof require === 'function' && require;
         if (!jumped && currentRequire) {
           return currentRequire(name, true);
         }
@@ -29,7 +29,7 @@ require = (function (modules, cache, entry) {
           return previousRequire(name, true);
         }
 
-        var err = new Error('Cannot find module \'' + name + '\'');
+        var err = new Error("Cannot find module '" + name + "'");
         err.code = 'MODULE_NOT_FOUND';
         throw err;
       }
@@ -38,12 +38,17 @@ require = (function (modules, cache, entry) {
         return newRequire(localRequire.resolve(x));
       }
 
-      localRequire.resolve = function (x) {
+      localRequire.resolve = function(x) {
         return modules[name][1][x] || x;
       };
 
-      var module = cache[name] = new newRequire.Module;
-      modules[name][0].call(module.exports, localRequire, module, module.exports);
+      var module = (cache[name] = new newRequire.Module());
+      modules[name][0].call(
+        module.exports,
+        localRequire,
+        module,
+        module.exports
+      );
     }
 
     return cache[name].exports;
@@ -57,6 +62,7 @@ require = (function (modules, cache, entry) {
   newRequire.Module = Module;
   newRequire.modules = modules;
   newRequire.cache = cache;
+  // 上一层级的 require，关注一下 require 包含什么
   newRequire.parent = previousRequire;
 
   for (var i = 0; i < entry.length; i++) {
@@ -65,140 +71,191 @@ require = (function (modules, cache, entry) {
 
   // Override the current require with this new one
   return newRequire;
-})({4:[function(require,module,exports) {
-"use strict";
+})(
+  {
+    4: [
+      function(require, module, exports) {
+        'use strict';
+        Object.defineProperty(exports, '__esModule', {
+          value: true
+        });
+        const c = 1;
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-const a = 1;
+        exports.default = c;
+      },
+      {}
+    ],
+    3: [
+      function(require, module, exports) {
+        'use strict';
 
-const b = function () {
-  return a;
-};
+        Object.defineProperty(exports, '__esModule', {
+          value: true
+        });
+        exports.c = exports.b = exports.a = undefined;
 
-exports.a = a;
-exports.b = b;
-},{}],2:[function(require,module,exports) {
-"use strict";
-
-var _main = require("./main");
-
-console.log((0, _main.b)());
-},{"./main":4}],0:[function(require,module,exports) {
-var global = (1, eval)('this');
-var OldModule = module.bundle.Module;
-function Module() {
-  OldModule.call(this);
-  this.hot = {
-    accept: function (fn) {
-      this._acceptCallback = fn || function () {};
-    },
-    dispose: function (fn) {
-      this._disposeCallback = fn;
-    }
-  };
-}
-
-module.bundle.Module = Module;
-
-if (!module.bundle.parent) {
-  var ws = new WebSocket('ws://localhost:54309/');
-  ws.onmessage = function(event) {
-    var data = JSON.parse(event.data);
-
-    if (data.type === 'update') {
-      data.assets.forEach(function (asset) {
-        hmrApply(global.require, asset);
-      });
-
-      data.assets.forEach(function (asset) {
-        if (!asset.isNew) {
-          hmrAccept(global.require, asset.id);
+        var _main = require('./main-2');
+        var _main2 = _interopRequireDefault(_main);
+        function _interopRequireDefault(obj) {
+          return obj && obj.__esModule ? obj : { default: obj };
         }
-      });
-    }
 
-    if (data.type === 'reload') {
-      window.location.reload();
-    }
+        const a = 1;
+        const b = function() {
+          return a;
+        };
 
-    if (data.type === 'error-resolved') {
-      console.log('[parcel] ✨ Error resolved');
-    }
+        exports.a = a;
+        exports.b = b;
+        exports.c = _main2.default;
+      },
+      { './main-2': 4 }
+    ],
+    2: [
+      function(require, module, exports) {
+        'use strict';
 
-    if (data.type === 'error') {
-      console.error(`[parcel] 🚨 ${data.error.message}\n${data.error.stack}`);
-    }
-  };
-}
+        var _main = require('./main');
 
-function getParents(bundle, id) {
-  var modules = bundle.modules;
-  if (!modules) {
-    return [];
-  }
+        console.log(undefined);
+        console.log((0, _main.b)());
+      },
+      { './main': 3 }
+    ],
+    0: [
+      function(require, module, exports) {
+        var global = (1, eval)('this');
+        var OldModule = module.bundle.Module;
 
-  var parents = [];
-  var k, d, dep;
+        function Module() {
+          OldModule.call(this);
+          this.hot = {
+            accept: function(fn) {
+              this._acceptCallback = fn || function() {};
+            },
+            dispose: function(fn) {
+              this._disposeCallback = fn;
+            }
+          };
+        }
 
-  for (k in modules) {
-    for (d in modules[k][1]) {
-      dep = modules[k][1][d];
-      if (dep === id || (Array.isArray(dep) && dep[dep.length - 1] === id)) {
-        parents.push(+k);
-      }
-    }
-  }
+        // 对 module.bundle.Module 做一层代理，在保留原有行为的基础上，增加 this.hot
+        module.bundle.Module = Module;
 
-  if (bundle.parent) {
-    parents = parents.concat(getParents(bundle.parent, id));
-  }
+        if (!module.bundle.parent) {
+          var ws = new WebSocket('ws://localhost:52226/');
 
-  return parents;
-}
+          ws.onmessage = function(event) {
+            var data = JSON.parse(event.data);
 
-function hmrApply(bundle, asset) {
-  var modules = bundle.modules;
-  if (!modules) {
-    return;
-  }
+            if (data.type === 'update') {
+              data.assets.forEach(function(asset) {
+                hmrApply(global.require, asset);
+              });
 
-  if (modules[asset.id] || !bundle.parent) {
-    var fn = new Function('require', 'module', 'exports', asset.generated.js);
-    asset.isNew = !modules[asset.id];
-    modules[asset.id] = [fn, asset.deps];
-  } else if (bundle.parent) {
-    hmrApply(bundle.parent, asset);
-  }
-}
+              data.assets.forEach(function(asset) {
+                if (!asset.isNew) {
+                  hmrAccept(global.require, asset.id);
+                }
+              });
+            }
 
-function hmrAccept(bundle, id) {
-  var modules = bundle.modules;
-  if (!modules) {
-    return;
-  }
+            if (data.type === 'reload') {
+              window.location.reload();
+            }
 
-  if (!modules[id] && bundle.parent) {
-    return hmrAccept(bundle.parent, id);
-  }
+            if (data.type === 'error-resolved') {
+              console.log('[parcel] ✨ Error resolved');
+            }
 
-  var cached = bundle.cache[id];
-  if (cached && cached.hot._disposeCallback) {
-    cached.hot._disposeCallback();
-  }
+            if (data.type === 'error') {
+              console.error(
+                `[parcel] 🚨 ${data.error.message}\n${data.error.stack}`
+              );
+            }
+          };
+        }
 
-  delete bundle.cache[id];
-  bundle(id);
+        function getParents(bundle, id) {
+          var modules = bundle.modules;
+          if (!modules) {
+            return [];
+          }
 
-  cached = bundle.cache[id];
-  if (cached && cached.hot && cached.hot._acceptCallback) {
-    cached.hot._acceptCallback();
-    return true;
-  }
+          var parents = [];
+          var k, d, dep;
 
-  return getParents(global.require, id).some(function (id) {
-    return hmrAccept(global.require, id)
-  });
-}
-},{}]},{},[0,2])
+          for (k in modules) {
+            for (d in modules[k][1]) {
+              dep = modules[k][1][d];
+              if (
+                dep === id ||
+                (Array.isArray(dep) && dep[dep.length - 1] === id)
+              ) {
+                parents.push(+k);
+              }
+            }
+          }
+
+          if (bundle.parent) {
+            parents = parents.concat(getParents(bundle.parent, id));
+          }
+
+          return parents;
+        }
+
+        function hmrApply(bundle, asset) {
+          var modules = bundle.modules;
+          if (!modules) {
+            return;
+          }
+
+          if (modules[asset.id] || !bundle.parent) {
+            var fn = new Function(
+              'require',
+              'module',
+              'exports',
+              asset.generated.js
+            );
+            asset.isNew = !modules[asset.id];
+            modules[asset.id] = [fn, asset.deps];
+          } else if (bundle.parent) {
+            hmrApply(bundle.parent, asset);
+          }
+        }
+
+        function hmrAccept(bundle, id) {
+          var modules = bundle.modules;
+          if (!modules) {
+            return;
+          }
+
+          if (!modules[id] && bundle.parent) {
+            return hmrAccept(bundle.parent, id);
+          }
+
+          var cached = bundle.cache[id];
+          if (cached && cached.hot._disposeCallback) {
+            cached.hot._disposeCallback();
+          }
+
+          delete bundle.cache[id];
+          bundle(id);
+
+          cached = bundle.cache[id];
+          if (cached && cached.hot && cached.hot._acceptCallback) {
+            cached.hot._acceptCallback();
+            return true;
+          }
+
+          return getParents(global.require, id).some(function(id) {
+            return hmrAccept(global.require, id);
+          });
+        }
+      },
+      {}
+    ]
+  },
+  {},
+  [0, 2]
+);

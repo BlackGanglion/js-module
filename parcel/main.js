@@ -1,3 +1,5 @@
+import c from './main-2';
+
 const a = 1;
 
 const b = function () {
@@ -7,4 +9,5 @@ const b = function () {
 export {
   a,
   b,
+  c,
 }
